@@ -114,3 +114,5 @@ dmypy.json
 #exclude pdf files
 *.pdf
 /data_mc2
+*.wav
+.gitignore
