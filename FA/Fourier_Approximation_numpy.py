@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Compute Fourier component
 def compute_fourier_component(x_values, y_values, k_index):
     # Calculate period length
     period_length = x_values[-1] - x_values[0]
@@ -18,7 +17,6 @@ def compute_fourier_component(x_values, y_values, k_index):
     return a_k - 1j * b_k
 
 
-# Fourier approximation function
 def fourier_approximation(x_values, y_values, m_value):
     # Calculate the Fourier coefficients for harmonic_index = -m_value to m_value
     coefficients = [compute_fourier_component(x_values, y_values, k) for k in range(-m_value, m_value + 1)]
@@ -47,8 +45,7 @@ def f3(x):
     return np.exp(np.abs(x))
 
 
-# Plot Fourier approximations
-def plot_fourier_approximations(x_values, y_values, m_values, function_name='f(x))'):
+def plot_fourier_approximations(x_values, y_values, m_values, function_name='f(x)'):
     # Plot the original function
     plt.figure(figsize=(12, 8))
     plt.plot(x_values, y_values, label=f'Original function {function_name}', linewidth=2)
@@ -67,8 +64,7 @@ def plot_fourier_approximations(x_values, y_values, m_values, function_name='f(x
     plt.show()
 
 
-# Find optimal m_value based on error tolerance
-def find_fourier_components_for_error_tolerance(x_values, y_values, tolerance=0.01, function_name='f(x)',
+def find_fourier_components_for_error_tolerance(x_values, y_values, tolerance=0.001, function_name='f(x)',
                                                 max_m_value=100):
     m_value = 1
     previous_error = float('inf')
@@ -77,10 +73,10 @@ def find_fourier_components_for_error_tolerance(x_values, y_values, tolerance=0.
         approximation = fourier_approximation(x_values, y_values, m_value)
 
         with np.errstate(divide='ignore', invalid='ignore'):
-            relative_error = np.nanmax(np.abs((approximation - y_values) / y_values))
-            print(f'M_Value: {m_value}, Relative Error: {relative_error}')
+            relative_error = np.nanmax(np.abs((approximation - y_values) / y_values)) * 100
+            print(f'M_Value: {m_value}, Relative Error: {relative_error}%')
 
-        if relative_error <= tolerance and tolerance <= 0.001:
+        if relative_error <= tolerance:
             break
 
         if relative_error > previous_error and m_value > 1:
