@@ -1,6 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from scipy.fft import fft, fftfreq, ifft
+
+
+def load_sunspot_data(file_path):
+    data = pd.read_csv(file_path, sep='\s+', header=None)
+    years = data.values[:, 0::2].flatten()
+    sunspot_numbers = data.values[:, 1::2].flatten()
+    return years, sunspot_numbers
 
 
 def analyze_sunspot_data(years, sunspot_numbers):
@@ -34,6 +42,8 @@ def calculate_dominant_periods(sunspot_numbers, num_periods=5):
     for i, period in enumerate(dominant_periods, 1):
         print(f"Dominant period {i}: {period:.2f} years")
 
+    return dominant_periods
+
 
 def calculate_power_spectrum(sunspot_numbers, yf_mod=None):
     # Calculate the power spectrum using FFT
@@ -50,16 +60,20 @@ def calculate_power_spectrum(sunspot_numbers, yf_mod=None):
     return power_spectrum, xf, yf
 
 
-def modify_spectrum_and_reconstruct(yf, k_greater_than, k_less_than):
+def modify_spectrum_and_reconstruct(yf, k_greater_than=None, k_less_than=None):
     # Calculate the power spectrum
     power_spectrum = np.abs(yf)
 
-    # Remove largest components (k > 20)
+    # Remove largest components (k > 20) if specified
     yf_mod = yf.copy()
-    yf_mod[power_spectrum > k_greater_than] = 0
+    if k_greater_than is not None:
+        indices_greater = np.where(power_spectrum > k_greater_than)[0]
+        yf_mod[indices_greater] = 0
 
-    # Remove smallest components (k < 5)
-    yf_mod[power_spectrum < k_less_than] = 0
+    # Remove smallest components (k < 5) if specified
+    if k_less_than is not None:
+        indices_less = np.where(power_spectrum < k_less_than)[0]
+        yf_mod[indices_less] = 0
 
     # Perform inverse FFT to reconstruct the signal
     reconstructed_signal = ifft(yf_mod)
