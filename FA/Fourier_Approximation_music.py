@@ -13,6 +13,7 @@ def load_audio(filename):
 
 
 def plot_waveform(y, sr, title, start=0, end=None):
+    plt.figure(figsize=(14, 5))
     if end:
         librosa.display.waveshow(y[start:end], sr=sr)
     else:

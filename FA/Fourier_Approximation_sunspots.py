@@ -11,7 +11,7 @@ def load_sunspot_data(file_path):
     return years, sunspot_numbers
 
 
-def analyze_sunspot_data(years, sunspot_numbers):
+def analyze_sunspot_data(sunspot_numbers):
     # Calculate the power spectrum using FFT
     power_spectrum, xf, yf = calculate_power_spectrum(sunspot_numbers)
 
@@ -45,35 +45,26 @@ def calculate_dominant_periods(sunspot_numbers, num_periods=5):
     return dominant_periods
 
 
-def calculate_power_spectrum(sunspot_numbers, yf_mod=None):
-    # Calculate the power spectrum using FFT
+def calculate_power_spectrum(sunspot_numbers, T=1.0):
     N = len(sunspot_numbers)
-    T = 1.0  # Time interval in years
-    if yf_mod is None:
-        yf = fft(sunspot_numbers)
-    else:
-        yf = yf_mod
+    yf = fft(sunspot_numbers)
+    power_spectrum = np.abs(yf[:N // 2]) ** 2
     xf = fftfreq(N, T)[:N // 2]
-
-    # Compute the power spectrum
-    power_spectrum = 2.0 / N * np.abs(yf[:N // 2])
     return power_spectrum, xf, yf
 
 
-def modify_spectrum_and_reconstruct(yf, k_greater_than=None, k_less_than=None):
-    # Calculate the power spectrum
-    power_spectrum = np.abs(yf)
+def modify_spectrum_and_reconstruct(yf, sunspot_numbers, k_greater_than=None, k_less_than=None):
+    yf_mod = yf.copy()
+    N = len(sunspot_numbers)
+    freqs = fftfreq(N, 1./N)
 
     # Remove largest components (k > 20) if specified
-    yf_mod = yf.copy()
     if k_greater_than is not None:
-        indices_greater = np.where(power_spectrum > k_greater_than)[0]
-        yf_mod[indices_greater] = 0
+        yf_mod[np.abs(freqs) > k_greater_than] = 0
 
     # Remove smallest components (k < 5) if specified
     if k_less_than is not None:
-        indices_less = np.where(power_spectrum < k_less_than)[0]
-        yf_mod[indices_less] = 0
+        yf_mod[np.abs(freqs) < k_less_than] = 0
 
     # Perform inverse FFT to reconstruct the signal
     reconstructed_signal = ifft(yf_mod)
@@ -94,11 +85,17 @@ def show_sunspot_numbers_years(years, sunspot_numbers):
 
 def show_sunspot_power_spectrum(xf, power_spectrum):
     plt.figure(figsize=(12, 6))
-    plt.plot(xf, power_spectrum)
-    plt.title('Power Spectrum of Sunspot Numbers')
-    plt.xlabel('Frequency (1/year)')
-    plt.ylabel('Power')
-    plt.grid()
+
+    # Exclude the zero frequency component to avoid plotting it
+    xf_nonzero = xf[1:]
+    power_spectrum_nonzero = power_spectrum[1:]
+
+    plt.plot(xf_nonzero, power_spectrum_nonzero, label='Power Spectrum')
+    plt.yscale('log')
+    plt.title('Power-Spektrum')
+    plt.xlabel('Frequenz [1/Jahr]')
+    plt.ylabel('Leistung')
+    plt.grid(True, which='both', linestyle='--', linewidth=0.5)
     plt.show()
 
 
