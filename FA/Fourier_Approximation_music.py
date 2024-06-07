@@ -4,6 +4,7 @@ import librosa
 import librosa.display
 import soundfile as sf
 import os
+import scipy.fft as fft
 
 
 def load_audio(filename):
@@ -12,7 +13,6 @@ def load_audio(filename):
 
 
 def plot_waveform(y, sr, title, start=0, end=None):
-    plt.figure(figsize=(14, 5))
     if end:
         librosa.display.waveshow(y[start:end], sr=sr)
     else:
@@ -24,19 +24,33 @@ def plot_waveform(y, sr, title, start=0, end=None):
 
 
 def compute_amplitude_spectrum(y, sr):
-    Y = np.fft.fft(y)
+    Y = fft.fft(y)
     Y_mag = np.abs(Y)
-    freq = np.fft.fftfreq(len(Y), 1 / sr)
+    freq = fft.fftfreq(len(Y), 1 / sr)
     return Y, Y_mag, freq
 
 
-def plot_amplitude_spectrum(freq, Y_mag, sr):
-    plt.figure(figsize=(14, 5))
+def plot_amplitude_spectrum(freq, Y_mag, sr, zoom_freq=None):
+    plt.figure(figsize=(14, 10))
+
+    # Plot the full amplitude spectrum
+    plt.subplot(2, 1, 1)
     plt.plot(freq, Y_mag)
     plt.title('Amplitude Spectrum')
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('Magnitude')
-    plt.xlim(0, sr / 2)  # Show only positive frequencies
+
+    # Plot the zoomed-in amplitude spectrum
+    if zoom_freq:
+        zoom_freq_index = np.where(freq <= zoom_freq)[0][-1]
+        plt.subplot(2, 1, 2)
+        plt.plot(freq[:zoom_freq_index], Y_mag[:zoom_freq_index])
+        plt.title('Zoomed Amplitude Spectrum')
+        plt.xlabel('Frequency (Hz)')
+        plt.ylabel('Magnitude')
+        plt.xlim(0, zoom_freq)
+
+    plt.tight_layout()
     plt.show()
 
 
@@ -57,7 +71,7 @@ def identify_top_frequencies(Y, freq, top_n=5):
 
 
 def reconstruct_signal(Y):
-    return np.fft.ifft(Y).real
+    return fft.ifft(Y).real
 
 
 def calculate_mse(original, reconstructed):
@@ -70,3 +84,33 @@ def save_audio(directory, filename, data, sr):
     filepath = os.path.join(directory, filename)
     sf.write(filepath, data, sr)
     print(f"File saved: {filepath}")
+
+
+def plot_separate_waveforms(y, y_high, y_low, sr, title, start=0, end=None):
+    # Plot original and high frequencies
+    plt.figure(figsize=(14, 5))
+    if end:
+        librosa.display.waveshow(y[start:end], sr=sr, alpha=0.5, label='Original')
+        librosa.display.waveshow(y_high[start:end], sr=sr, color='r', alpha=0.5, label='High Frequencies')
+    else:
+        librosa.display.waveshow(y, sr=sr, alpha=0.5, label='Original')
+        librosa.display.waveshow(y_high, sr=sr, color='r', alpha=0.5, label='High Frequencies')
+    plt.title(title + ' - High Frequencies')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Amplitude')
+    plt.legend()
+    plt.show()
+
+    # Plot original and low frequencies
+    plt.figure(figsize=(14, 5))
+    if end:
+        librosa.display.waveshow(y[start:end], sr=sr, alpha=0.5, label='Original')
+        librosa.display.waveshow(y_low[start:end], sr=sr, color='g', alpha=0.5, label='Low Frequencies')
+    else:
+        librosa.display.waveshow(y, sr=sr, alpha=0.5, label='Original')
+        librosa.display.waveshow(y_low, sr=sr, color='g', alpha=0.5, label='Low Frequencies')
+    plt.title(title + ' - Low Frequencies')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Amplitude')
+    plt.legend()
+    plt.show()
