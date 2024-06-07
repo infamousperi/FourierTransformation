@@ -16,11 +16,17 @@ def perform_fft(image_array):
     return fft_img_shifted, magnitude_spectrum
 
 
-def plot_magnitude_spectrum(magnitude_spectrum, title):
-    plt.figure(figsize=(10, 10))
-    plt.imshow(np.log1p(magnitude_spectrum), cmap='gray')
-    plt.title(title)
-    plt.colorbar()
+def plot_magnitude_spectrum(original_image, magnitude_spectrum, title):
+    fig, axes = plt.subplots(1, 2, figsize=(20, 10))
+
+    # Display original image
+    axes[0].imshow(original_image, cmap='gray')
+    axes[0].set_title('Original Image')
+
+    # Display magnitude spectrum
+    axes[1].imshow(np.log1p(magnitude_spectrum), cmap='gray')
+    axes[1].set_title(title)
+
     plt.show()
 
 
@@ -36,14 +42,19 @@ def filter_fft_components(fft_img_shifted, magnitude_spectrum, thresholds):
 
 
 def plot_filtered_images(original_image, filtered_images):
-    fig, axes = plt.subplots(1, len(filtered_images) + 1, figsize=(20, 20))
-    axes[0].imshow(original_image, cmap='gray')
-    axes[0].set_title('Original Image')
+    fig, axes = plt.subplots(len(filtered_images), 2, figsize=(20, 20))
 
-    for ax, (threshold, filtered_img) in zip(axes[1:], filtered_images):
-        ax.imshow(filtered_img, cmap='gray')
-        ax.set_title(f'Threshold: {threshold}%')
+    for i, (threshold, filtered_img) in enumerate(filtered_images):
+        # Calculate and display FFT magnitude spectrum of the filtered image
+        _, filtered_magnitude_spectrum = perform_fft(filtered_img)
+        axes[i, 0].imshow(np.log(1 + filtered_magnitude_spectrum), cmap='gray')
+        axes[i, 0].set_title(f'Filtered Fourier Spectrum, {threshold:.5f}% filtered')
 
+        # Display filtered image
+        axes[i, 1].imshow(filtered_img, cmap='gray')
+        axes[i, 1].set_title(f'Reconstructed Image (Threshold: {threshold:.5f})')
+
+    plt.tight_layout()
     plt.show()
 
 
