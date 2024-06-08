@@ -70,7 +70,7 @@ def plot_error_and_approximation(x_values, y_values, yappr, ms, errors, m, label
     plt.show()
 
 
-def find_optimal_fourier_components(f: Callable[[float], float], x_values, desired_error=0.1, m_step=1, label=''):
+def find_optimal_fourier_components(f: Callable[[float], float], x_values, desired_error=0.1, m_step=1):
     m = 0
     y_values = f(x_values)
     yappr = fourier_approximation(f, x_values[-1], len(x_values), m)
@@ -90,9 +90,7 @@ def find_optimal_fourier_components(f: Callable[[float], float], x_values, desir
         if err0 < err:
             break
 
-    plot_error_and_approximation(x_values, y_values, yappr, ms, errors, m, label)
-
-    print(f'\n\nNumber of Fourier components for a maximum relative error of {desired_error}%:\n\nm={m}\n\n')
+    return x_values, y_values, yappr, ms, errors, m
 
 
 def f1(x):
