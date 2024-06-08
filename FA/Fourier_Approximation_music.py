@@ -7,11 +7,13 @@ import os
 import scipy.fft as fft
 
 
+# Function to load an audio file
 def load_audio(filename):
     y, sr = librosa.load(filename, sr=None)
     return y, sr
 
 
+# Function to plot the waveform of an audio signal
 def plot_waveform(y, sr, title, start=0, end=None):
     plt.figure(figsize=(14, 5))
     if end:
@@ -21,9 +23,11 @@ def plot_waveform(y, sr, title, start=0, end=None):
     plt.title(title)
     plt.xlabel('Time (s)')
     plt.ylabel('Amplitude')
+    plt.tight_layout()
     plt.show()
 
 
+# Function to compute the amplitude spectrum of an audio signal
 def compute_amplitude_spectrum(y, sr):
     Y = fft.fft(y)
     Y_mag = np.abs(Y)
@@ -31,6 +35,7 @@ def compute_amplitude_spectrum(y, sr):
     return Y, Y_mag, freq
 
 
+# Function to plot the amplitude spectrum of an audio signal
 def plot_amplitude_spectrum(freq, Y_mag, sr, zoom_freq=None):
     plt.figure(figsize=(14, 10))
 
@@ -55,6 +60,7 @@ def plot_amplitude_spectrum(freq, Y_mag, sr, zoom_freq=None):
     plt.show()
 
 
+# Function to split the signal into high and low frequency components
 def split_signal(Y, freq, cutoff):
     Y_high = np.copy(Y)
     Y_low = np.copy(Y)
@@ -65,20 +71,24 @@ def split_signal(Y, freq, cutoff):
     return Y_high, Y_low
 
 
+# Function to identify the top N frequencies in the signal
 def identify_top_frequencies(Y, freq, top_n=5):
     top_indices = np.argsort(np.abs(Y))[-top_n:]
     top_freqs = freq[top_indices]
     return top_freqs
 
 
+# Function to reconstruct the signal from its frequency components
 def reconstruct_signal(Y):
     return fft.ifft(Y).real
 
 
+# Function to calculate the mean squared error between the original and reconstructed signals
 def calculate_mse(original, reconstructed):
     return np.mean((original - reconstructed) ** 2)
 
 
+# Function to save an audio file
 def save_audio(directory, filename, data, sr):
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -87,6 +97,7 @@ def save_audio(directory, filename, data, sr):
     print(f"File saved: {filepath}")
 
 
+# Function to plot the original and separated waveforms (high and low frequencies)
 def plot_separate_waveforms(y, y_high, y_low, sr, title, start=0, end=None):
     # Plot original and high frequencies
     plt.figure(figsize=(14, 5))
@@ -100,6 +111,7 @@ def plot_separate_waveforms(y, y_high, y_low, sr, title, start=0, end=None):
     plt.xlabel('Time (s)')
     plt.ylabel('Amplitude')
     plt.legend()
+    plt.tight_layout()
     plt.show()
 
     # Plot original and low frequencies
@@ -114,4 +126,5 @@ def plot_separate_waveforms(y, y_high, y_low, sr, title, start=0, end=None):
     plt.xlabel('Time (s)')
     plt.ylabel('Amplitude')
     plt.legend()
+    plt.tight_layout()
     plt.show()

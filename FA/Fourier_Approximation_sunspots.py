@@ -4,13 +4,15 @@ import pandas as pd
 from scipy.fft import fft, fftfreq, ifft
 
 
+# Function to load sunspot data from a file
 def load_sunspot_data(file_path):
     data = pd.read_csv(file_path, sep='\s+', header=None)
-    years = data.values[:, 0::2].flatten()
-    sunspot_numbers = data.values[:, 1::2].flatten()
+    years = data.values[:, 0::2].flatten()  # Extract years
+    sunspot_numbers = data.values[:, 1::2].flatten()  # Extract sunspot numbers
     return years, sunspot_numbers
 
 
+# Function to analyze sunspot data and find the dominant period
 def analyze_sunspot_data(sunspot_numbers):
     # Calculate the power spectrum using FFT
     power_spectrum, xf, yf = calculate_power_spectrum(sunspot_numbers)
@@ -26,6 +28,7 @@ def analyze_sunspot_data(sunspot_numbers):
     return xf, power_spectrum, dominant_period_nonzero, yf
 
 
+# Function to calculate the dominant periods in the sunspot data
 def calculate_dominant_periods(sunspot_numbers, num_periods=5):
     # Calculate the power spectrum using FFT
     power_spectrum, xf, yf = calculate_power_spectrum(sunspot_numbers)
@@ -45,6 +48,7 @@ def calculate_dominant_periods(sunspot_numbers, num_periods=5):
     return dominant_periods
 
 
+# Function to calculate the power spectrum of sunspot numbers using FFT
 def calculate_power_spectrum(sunspot_numbers, T=1.0):
     N = len(sunspot_numbers)
     yf = fft(sunspot_numbers)
@@ -53,16 +57,17 @@ def calculate_power_spectrum(sunspot_numbers, T=1.0):
     return power_spectrum, xf, yf
 
 
+# Function to modify the spectrum and reconstruct the signal
 def modify_spectrum_and_reconstruct(yf, sunspot_numbers, k_greater_than=None, k_less_than=None):
     yf_mod = yf.copy()
     N = len(sunspot_numbers)
-    freqs = fftfreq(N, 1./N)
+    freqs = fftfreq(N, 1. / N)
 
-    # Remove largest components (k > 20) if specified
+    # Remove largest components (k > specified threshold) if specified
     if k_greater_than is not None:
         yf_mod[np.abs(freqs) > k_greater_than] = 0
 
-    # Remove smallest components (k < 5) if specified
+    # Remove smallest components (k < specified threshold) if specified
     if k_less_than is not None:
         yf_mod[np.abs(freqs) < k_less_than] = 0
 
@@ -72,6 +77,7 @@ def modify_spectrum_and_reconstruct(yf, sunspot_numbers, k_greater_than=None, k_
     return reconstructed_signal, yf_mod
 
 
+# Function to plot sunspot numbers over years
 def show_sunspot_numbers_years(years, sunspot_numbers):
     plt.figure(figsize=(14, 6))
     plt.plot(years, sunspot_numbers, label='Sunspot Numbers')
@@ -80,9 +86,11 @@ def show_sunspot_numbers_years(years, sunspot_numbers):
     plt.ylabel('Sunspot Numbers')
     plt.legend()
     plt.grid()
+    plt.tight_layout()
     plt.show()
 
 
+# Function to plot the power spectrum of sunspot numbers
 def show_sunspot_power_spectrum(xf, power_spectrum):
     plt.figure(figsize=(12, 6))
 
@@ -92,13 +100,15 @@ def show_sunspot_power_spectrum(xf, power_spectrum):
 
     plt.plot(xf_nonzero, power_spectrum_nonzero, label='Power Spectrum')
     plt.yscale('log')
-    plt.title('Power-Spektrum')
-    plt.xlabel('Frequenz [1/Jahr]')
-    plt.ylabel('Leistung')
+    plt.title('Power Spectrum')
+    plt.xlabel('Frequency [1/Year]')
+    plt.ylabel('Power')
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+    plt.tight_layout()
     plt.show()
 
 
+# Function to plot the original and reconstructed sunspot numbers
 def show_sunspot_reconstructed_signal(years, sunspot_numbers, reconstructed_signal):
     plt.figure(figsize=(14, 6))
     plt.plot(years, sunspot_numbers, label='Original Sunspot Numbers')
@@ -108,4 +118,5 @@ def show_sunspot_reconstructed_signal(years, sunspot_numbers, reconstructed_sign
     plt.ylabel('Sunspot Numbers')
     plt.legend()
     plt.grid()
+    plt.tight_layout()
     plt.show()

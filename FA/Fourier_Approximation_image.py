@@ -3,11 +3,14 @@ import matplotlib.pyplot as plt
 from scipy.fft import fft2, ifft2, fftshift, ifftshift
 from PIL import Image
 
+
+# Function to load an image and convert it to grayscale
 def load_image(image_path):
     img = Image.open(image_path).convert('L')
     return np.array(img)
 
 
+# Function to perform 2D FFT on an image and compute the magnitude spectrum
 def perform_fft(image_array):
     fft_img = fft2(image_array)
     fft_img_shifted = fftshift(fft_img)
@@ -15,6 +18,7 @@ def perform_fft(image_array):
     return fft_img_shifted, magnitude_spectrum
 
 
+# Function to plot the original image and its magnitude spectrum
 def plot_magnitude_spectrum(original_image, magnitude_spectrum, title):
     fig, axes = plt.subplots(1, 2, figsize=(20, 10))
 
@@ -30,9 +34,11 @@ def plot_magnitude_spectrum(original_image, magnitude_spectrum, title):
     axes[1].imshow(np.log1p(magnitude_spectrum), cmap='inferno')
     axes[1].set_title(title)
 
+    plt.tight_layout()
     plt.show()
 
 
+# Function to filter FFT components based on a list of thresholds
 def filter_fft_components(fft_img_shifted, magnitude_spectrum, thresholds):
     max_amplitude = np.max(magnitude_spectrum)
     filtered_images = []
@@ -44,31 +50,30 @@ def filter_fft_components(fft_img_shifted, magnitude_spectrum, thresholds):
     return filtered_images
 
 
+# Function to plot filtered images and their corresponding magnitude spectrums
 def plot_filtered_images(original_image, filtered_images):
-    n = len(filtered_images)
-    fig, axes = plt.subplots(n, 2, figsize=(20, 10 * n))
+    for threshold, filtered_img in filtered_images:
+        fig, axes = plt.subplots(1, 2, figsize=(20, 10))
 
-    if n == 1:
-        axes = [axes]  # Wrap axes in a list to make indexing consistent
-
-    for i, (threshold, filtered_img) in enumerate(filtered_images):
         # Calculate and display FFT magnitude spectrum of the filtered image
         _, filtered_magnitude_spectrum = perform_fft(filtered_img)
-        axes[i][0].imshow(np.log(1 + filtered_magnitude_spectrum), cmap='inferno')
-        axes[i][0].set_title(f'Filtered Fourier Spectrum, {threshold:.5f}% filtered')
+        axes[0].imshow(np.log(1 + filtered_magnitude_spectrum), cmap='inferno')
+        axes[0].set_title(f'Filtered Fourier Spectrum, {threshold:.5f}% filtered')
 
         # Display filtered image
-        axes[i][1].imshow(filtered_img, cmap='inferno')
-        axes[i][1].set_title(f'Reconstructed Image (Threshold: {threshold:.5f}%)')
+        axes[1].imshow(filtered_img, cmap='inferno')
+        axes[1].set_title(f'Reconstructed Image (Threshold: {threshold:.5f}%)')
 
-    plt.tight_layout()
-    plt.show()
+        plt.tight_layout()
+        plt.show()
 
 
+# Function to compute the Mean Squared Error (MSE) between the original and reconstructed images
 def compute_mse(original_image, reconstructed_image):
     return np.mean((original_image - reconstructed_image) ** 2)
 
 
+# Function to find the maximum compression threshold that keeps the error within a desired percentage
 def find_max_compression_threshold(original_image, fft_img_shifted, magnitude_spectrum, max_error_percentage):
     max_amplitude = np.max(magnitude_spectrum)
     thresholds = np.arange(0, 100, 0.00001)  # Check every 0.1% from 0% to 99.9%
