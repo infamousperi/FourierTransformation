@@ -73,8 +73,15 @@ def split_signal(Y, freq, cutoff):
 
 # Function to identify the top N frequencies in the signal
 def identify_top_frequencies(Y, freq, top_n=5):
-    top_indices = np.argsort(np.abs(Y))[-top_n:]
-    top_freqs = freq[top_indices]
+    # Only consider positive frequencies
+    positive_indices = np.where(freq > 0)
+    Y_positive = Y[positive_indices]
+    freq_positive = freq[positive_indices]
+
+    # Find indices of the top N frequencies
+    top_indices = np.argsort(np.abs(Y_positive))[-top_n:]
+    top_freqs = freq_positive[top_indices]
+
     return top_freqs
 
 

@@ -75,15 +75,45 @@ def compute_mse(original_image, reconstructed_image):
 
 # Function to find the maximum compression threshold that keeps the error within a desired percentage
 def find_max_compression_threshold(original_image, fft_img_shifted, magnitude_spectrum, max_error_percentage):
+    # Find the maximum value in the magnitude spectrum
     max_amplitude = np.max(magnitude_spectrum)
-    thresholds = np.arange(0, 100, 0.00001)  # Check every 0.1% from 0% to 99.9%
-    for threshold in thresholds:
-        threshold_value = (threshold / 100) * max_amplitude
+
+    # Initialize the low and high bounds for binary search
+    low, high = 0, 100
+    best_threshold = 0
+
+    # Perform binary search to find the maximum threshold within error limit
+    while low <= high:
+        # Calculate the midpoint of the current range
+        mid = (low + high) / 2
+
+        # Calculate the threshold value corresponding to the midpoint percentage
+        threshold_value = (mid / 100) * max_amplitude
+
+        # Apply the threshold to filter the FFT image
         filtered_fft = np.where(magnitude_spectrum > threshold_value, fft_img_shifted, 0)
+
+        # Compute the inverse FFT to get the compressed image
         filtered_img = np.abs(ifft2(ifftshift(filtered_fft)))
+
+        # Calculate the Mean Squared Error (MSE) between the original and compressed images
         mse = compute_mse(original_image, filtered_img)
+
+        # Calculate the error percentage
         error_percentage = (mse / np.mean(original_image ** 2)) * 100
-        print(f'Threshold: {threshold}%, Error: {error_percentage:.4f}%')
-        if error_percentage > max_error_percentage:
-            return threshold - 0.00001  # Return the previous threshold that was within the limit
-    return thresholds[-1]  # If all thresholds are within the limit, return the last one
+
+        # Log the current state of the binary search
+        print(f'Low: {low:.5f}%, High: {high:.5f}%, Mid: {mid:.5f}%, '
+              f'Threshold Value: {threshold_value:.5f}, Error: {error_percentage:.5f}%')
+
+        # Adjust the search range based on the error percentage
+        if error_percentage <= max_error_percentage:
+            # If the error is within the acceptable limit, update the best threshold
+            best_threshold = mid
+            low = mid + 0.00001  # Narrow the search upwards
+        else:
+            # If the error exceeds the limit, narrow the search downwards
+            high = mid - 0.00001
+
+    # Return the best threshold found within the error limit
+    return best_threshold
